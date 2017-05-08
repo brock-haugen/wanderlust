@@ -59,7 +59,7 @@ def main(filename):
             })
 
     with open('wikivoyage.json', 'w') as f:
-        f.write(json.dumps(pages))
+        f.write(json.dumps(pages, indent=2))
 
 if __name__ == '__main__':
     """
