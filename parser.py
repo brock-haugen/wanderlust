@@ -2,61 +2,64 @@ import sys
 import json
 from functools import reduce
 import xmltodict
+import re
 
-def flatten_json(data):
-    out = {}
-    def flatten(x, name=''):
-        if isinstance(x, dict):
-            for a in x:
-                flatten(x[a], name + a + '__')
-        elif isinstance(x, list):
-            for i, a in enumerate(x):
-                flatten(a, name + str(i) + '__')
-        else:
-            out[name[:-2]] = x
+def parse_text(text):
+    obj = {}
+    for m in re.findall(r'(\{\{pagebanner|\n\=\=(\w+)\=\=\n)(((.|\n)(?!\n\=\=))*)', text):
+        label = m[1].lower()
+        group = m[2]
+        if len(label) < 1:
+            if "summary" in obj: continue
+            label = "summary"
+            group = m[0] + group
+        paragraphs = []
 
-    flatten(data)
-    return out
+        for g in re.findall(r'([^\{]+|\{\{[^\}]+\}\})', group):
+            if len(g) < 5: continue
 
-def xml2json(data):
-    xml_obj = xmltodict.parse(data)
-    pages = xml_obj['mediawiki']['page']
-    pages = [flatten_json(p) for p in pages]
-    return pages
+            if '{' in g:
+                p = g[2:-2].split('|')
+                pk = p[0].strip()
+                new_obj = {}
 
-def json2csv(data):
-    headers = reduce(lambda x, y: x + y, map(lambda x: list(x.keys()), data))
-    headers = sorted(list(set(headers)))
-    rows = [headers]
+                for s in p[1:]:
+                    s = s.split('=')
+                    k = s[0].strip()
+                    v = s[1].strip() if len(s) > 1 else None
+                    if v and len(v) > 2:
+                        new_obj[k] = v
 
-    for rd in data:
-        row = []
-        for h in headers:
-            v = rd.get(h, '')
-            if isinstance(v, str):
-                v = '"' + v + '"'
+                if len(new_obj.keys()) > 0:
+                    paragraphs.append({pk: new_obj})
             else:
-                v = str(v)
-            row.append(v)
-        rows.append(row)
+                paragraphs.append(g.strip())
 
-    return rows
+        obj[label] = paragraphs
+
+    return obj
 
 def main(filename):
-    xml = open(filename).read()
+    file_data = open(filename).read()
+    xml_obj = xmltodict.parse(file_data)
+    pages = []
 
-    print("Parsing XML to JSON...")
-    obj = xml2json(xml)
-    with open('wikivoyage.json', 'w') as output:
-        output.write(json.dumps(obj, indent=2))
-        output.close()
+    for page in xml_obj['mediawiki']['page']:
+        try:
+            text = page['revision']['text']['#text']
+        except Exception:
+            continue
+        id = page['id']
+        title = page['title']
+        text_obj = parse_text(text)
+        pages.append({
+            'id': id,
+            'title': title,
+            'sections': text_obj
+            })
 
-#     print("Parsing JSON to CSV...")
-#     csv = json2csv(obj)
-#     with open('wikivoyage.csv', 'w') as output:
-#         for row in csv:
-#             output.write(','.join(row) + '\n')
-#         output.close()
+    with open('wikivoyage.json', 'w') as f:
+        f.write(json.dumps(pages))
 
 if __name__ == '__main__':
     """
