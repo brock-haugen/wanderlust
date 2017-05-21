@@ -1,8 +1,8 @@
-import sys
 import json
-from functools import reduce
-import xmltodict
 import re
+import sys
+import xmltodict
+from functools import reduce
 
 def parse_text(text):
     obj = {}

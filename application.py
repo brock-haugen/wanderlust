@@ -20,21 +20,22 @@ def random_voyage(filter_func=None):
         tmp_voyages = voyages
     return random.choice(tmp_voyages)
 
-def get_voyage(id):
+def get_voyage(key):
     global voyages
+    key = key.lower()
     for v in voyages:
-        if v['id'] == id:
+        if v['id'] == key or v['title'].lower() == key:
             return v
 
-@app.route("/")
-@app.route("/<voyage_id>")
-def show_voyage(voyage_id=None):
-    if voyage_id is None:
+@app.route('/')
+@app.route('/<voyage_key>')
+def show_voyage(voyage_key=None):
+    if voyage_key is None:
         voyage = random_voyage()
     else:
-        voyage = get_voyage(voyage_id)
+        voyage = get_voyage(voyage_key)
     return render_template('voyage.html', voyage=voyage)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     load_voyages(sys.argv[-1])
     app.run(port=8080, debug=True)
