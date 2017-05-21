@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <title>
+      {{ voyage.title }}
+    </title>
+  </head>
+
+  <body>
+    <h2 id='title'>
+      {{ voyage.title }}
+    </h2>
+    {% for c in voyage.sections.summary %}
+      <pre class='content'>
+        {{ c }}
+      </pre>
+    {% endfor %}
+
+    {{ voyage }}
+  </body>
+</html>

@@ -52,10 +52,12 @@ def main(filename):
         id = page['id']
         title = page['title']
         text_obj = parse_text(text)
-        pages.append({
-            'id': id,
-            'title': title,
-            'sections': text_obj
+
+        if len(text_obj.keys()) > 0:
+            pages.append({
+                'id': id,
+                'title': title,
+                'sections': text_obj
             })
 
     with open('wikivoyage.json', 'w') as f:
