@@ -49,4 +49,4 @@ def show_voyage(voyage_key=None):
 
 if __name__ == '__main__':
     load_voyages(sys.argv[-1])
-    app.run(port=8080, debug=True)
+    app.run(debug=True)
