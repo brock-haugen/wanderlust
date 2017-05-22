@@ -10,12 +10,23 @@
     <h2 id='title'>
       {{ voyage.title }}
     </h2>
+
+    <img width='100%' src='{{ txtt.banner_image(voyage) }}'>
+
     {% for c in voyage.sections.summary %}
-      <pre class='content'>
-        {{ c }}
-      </pre>
+      <div class='content'>
+        {{ txtt.text2html(c) | safe }}
+      </div>
     {% endfor %}
 
+    <h4>More on <a href="https://wikivoyage.org/wiki/{{ voyage.title }}">Wikivoyage</a></h4>
+
     {{ voyage }}
+
+    <style>
+      .content {
+        white-space: pre-wrap;
+      }
+    </style>
   </body>
 </html>

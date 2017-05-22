@@ -26,7 +26,11 @@ def parse_text(text):
                 for s in p[1:]:
                     s = s.split('=')
                     k = s[0].strip()
-                    v = s[1].strip() if len(s) > 1 else None
+                    if pk == 'pagebanner' and len(s) == 1:
+                        v = k
+                        k = 'image'
+                    else:
+                        v = s[1].strip() if len(s) > 1 else None
                     if v and len(v) > 2:
                         new_obj[k] = v
 
@@ -53,7 +57,21 @@ def main(filename):
         title = page['title']
         text_obj = parse_text(text)
 
-        if len(text_obj.keys()) > 0:
+        data_len = len(set([k for k in text_obj.keys() if k not in ['summary']]))
+        has_image = False
+        has_detailed_summary = False
+        if 'summary' in text_obj:
+            for s in text_obj['summary']:
+                if isinstance(s, str):
+                    if len(s) > 150 and len(s.split('.')) > 1:
+                        has_detailed_summary = True
+                elif 'pagebanner' in s:
+                    if 'image' in s['pagebanner']:
+                        img = s['pagebanner']['image']
+                        if img and 'default' not in img:
+                            has_image = True
+
+        if data_len > 0 and has_image and has_detailed_summary:
             pages.append({
                 'id': id,
                 'title': title,

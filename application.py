@@ -2,6 +2,8 @@ import json
 import random
 import sys
 
+import text_tools
+
 from flask import Flask, render_template
 app = Flask(__name__)
 
@@ -11,6 +13,7 @@ def load_voyages(file_name):
     global voyages
     with open(file_name) as raw_data:
         voyages = json.load(raw_data)
+        print('Loaded {} voyages'.format(len(voyages)))
 
 def random_voyage(filter_func=None):
     global voyages
@@ -27,6 +30,10 @@ def get_voyage(key):
         if v['id'] == key or v['title'].lower() == key:
             return v
 
+@app.context_processor
+def text_tools_processor():
+    return dict(txtt=text_tools)
+
 @app.route('/')
 @app.route('/<voyage_key>')
 def show_voyage(voyage_key=None):
@@ -34,7 +41,11 @@ def show_voyage(voyage_key=None):
         voyage = random_voyage()
     else:
         voyage = get_voyage(voyage_key)
-    return render_template('voyage.html', voyage=voyage)
+
+    if voyage:
+        return render_template('voyage.html', voyage=voyage)
+    else:
+        return 'Voyage not found<br><br><a href="/">Find another!</a>', 404
 
 if __name__ == '__main__':
     load_voyages(sys.argv[-1])
